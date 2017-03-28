@@ -299,7 +299,7 @@ void MainWindow::killProcess()
 
     foreach( QModelIndex index, selectedRows )
     {
-        int row = index.row();
+        //int row = index.row();
     }
 }
 
@@ -309,7 +309,7 @@ void MainWindow::stopProcess()
 
     foreach( QModelIndex index, selectedRows )
     {
-        int row = index.row();
+        //int row = index.row();
     }
 }
 
@@ -319,7 +319,7 @@ void MainWindow::continueProcess()
 
     foreach( QModelIndex index, selectedRows )
     {
-        int row = index.row();
+        //int row = index.row();
     }
 }
 
@@ -329,7 +329,9 @@ void MainWindow::timerEvent(QTimerEvent *e)
     sysinfo(&s_info);
     for(int i=0; i<ps.size(); i++)
     {
-        pid_t pid=  QString::fromStdString(ps[i].getPid()).toFloat();
+        QStandardItem* Ppid= model->item(i,0);
+        pid_t pid= QVariant(Ppid->data(Qt::DisplayRole)).toInt();
+
         procinfo info;
         get_proc_info(pid, &info);
 
