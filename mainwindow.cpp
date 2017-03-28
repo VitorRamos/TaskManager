@@ -235,7 +235,15 @@ void MainWindow::AddNewProcess(string pidName)
 
     QStandardItem* state= new QStandardItem;
     QString estado(info.state);
-    state->setText(estado);
+
+    if(estado == "R")
+        state->setText("Running");
+    else if(estado == "S" || estado == "D")
+        state->setText("Sleeping");
+    else if(estado == "Z")
+        state->setText("Zombie");
+    else if(estado == "T")
+        state->setText("Stopped");
     //model->setItem(i, 3, state);
     itens << state;
 
@@ -388,7 +396,14 @@ void MainWindow::timerEvent(QTimerEvent *e)
 
         QStandardItem* state= model->item(i, 3);
         QString estado(info.state);
-        state->setText(estado);
+        if(estado == "R")
+            state->setText("Running");
+        else if(estado == "S" || estado == "D")
+            state->setText("Sleeping");
+        else if(estado == "Z")
+            state->setText("Zombie");
+        else if(estado == "T")
+            state->setText("Stopped");
     }
 }
 
