@@ -379,3 +379,18 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::on_pushButtonKill_clicked()
+{
+    killProcess();
+}
+
+void MainWindow::on_pushButtonStop_clicked()
+{
+    stopProcess();
+}
+
+void MainWindow::on_pushButtonCont_clicked()
+{
+    continueProcess();
+}

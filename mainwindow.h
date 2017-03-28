@@ -24,6 +24,12 @@ public slots:
     void stopProcess();
     void continueProcess();
 
+private slots:
+    void on_pushButtonKill_clicked();
+    void on_pushButtonStop_clicked();
+    void on_pushButtonCont_clicked();
+
+
 private:
     Ui::MainWindow *ui;
     QStandardItemModel* model;
