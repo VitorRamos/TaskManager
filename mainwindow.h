@@ -5,8 +5,6 @@
 #include <QStandardItemModel>
 #include <vector>
 
-class Process;
-
 namespace Ui {
 class MainWindow;
 }
@@ -19,6 +17,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void timerEvent(QTimerEvent *e);
+    void AddNewProcess(std::string pid);
 
 public slots:
     void killProcess();
@@ -28,7 +27,7 @@ public slots:
 private:
     Ui::MainWindow *ui;
     QStandardItemModel* model;
-    std::vector<Process> ps;
+    std::vector<std::string> ps;
 };
 
 #endif // MAINWINDOW_H

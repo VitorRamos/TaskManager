@@ -16,37 +16,6 @@
 
 using namespace std;
 
-class Process
-{
-public:
-    Process(string pid)
-    {
-        this->pid= pid;
-    }
-    void setName(string n)
-    {
-        name= n;
-    }
-    void setStatus(string s)
-    {
-        status= s;
-    }
-    string getPid()
-    {
-        return pid;
-    }
-    string getName()
-    {
-        return name;
-    }
-    string getStatus()
-    {
-        return status;
-    }
-private:
-    string pid, name, status;
-};
-
 typedef struct statstruct_proc {
   int           pid;                      /** The process id. **/
   char          exName [_POSIX_PATH_MAX]; /** The filename of the executable **/
@@ -180,6 +149,29 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    model= new QStandardItemModel(ps.size(),6,this);
+    model->setHeaderData(0, Qt::Horizontal, QVariant("PID"));
+    model->setHeaderData(1, Qt::Horizontal, QVariant("NAME"));
+    model->setHeaderData(2, Qt::Horizontal, QVariant("CPU%"));
+    model->setHeaderData(3, Qt::Horizontal, QVariant("STATE"));
+    model->setHeaderData(4, Qt::Horizontal, QVariant("PPID"));
+    model->setHeaderData(5, Qt::Horizontal, QVariant("MEMORY"));
+
+    ui->tableView->setModel(model);
+    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableView->setSortingEnabled(true);
+
+    ui->tableView->setContextMenuPolicy(Qt::ActionsContextMenu);
+    QAction* killpid = new QAction("kill");
+    QAction* stoppid = new QAction("stop");
+    QAction* continuepid = new QAction("continue");
+    connect(killpid, SIGNAL(triggered()), this, SLOT(killProcess()));
+    connect(killpid, SIGNAL(triggered()), this, SLOT(stopProcess()));
+    connect(killpid, SIGNAL(triggered()), this, SLOT(continueProcess()));
+    ui->tableView->addAction(killpid);
+    ui->tableView->addAction(stoppid);
+    ui->tableView->addAction(continuepid);
+
     DIR *dp;
     dirent *dptr;
     dp= opendir("/proc/");
@@ -196,101 +188,69 @@ MainWindow::MainWindow(QWidget *parent) :
                 break;
             }
         if((int)dptr->d_type == 4 &&  ok)
-            ps.push_back(Process(dptr->d_name));
+        {
+            AddNewProcess(dptr->d_name);
+            ps.push_back(dptr->d_name);
+        }
     }
     closedir(dp);
 
-    /*
-    for(auto& p: ps)
-    {
-        string path= "/proc/"+p.getPid()+"/status";
-        string buffer;
-        ifstream abre(path.c_str());
-        //cout << info.exName << " " << cpu_use << endl;
-        while(!abre.eof())
-        {
-            getline(abre, buffer);
-            if(buffer.substr(0,5) == "Name:")
-            {
-                buffer= buffer.substr(6, buffer.size()-6);
-                p.setName(buffer);
-            }
-            if(buffer.substr(0,4) == "Pid:")
-            {
-                buffer= buffer.substr(5, buffer.size()-5);
-                p.setStatus(buffer);
-            }
-        }
-        //cout << endl;
-    }
-    */
 
-    model= new QStandardItemModel(ps.size(),6,this);
-    model->setHeaderData(0, Qt::Horizontal, QVariant("PID"));
-    model->setHeaderData(1, Qt::Horizontal, QVariant("NAME"));
-    model->setHeaderData(2, Qt::Horizontal, QVariant("CPU%"));
-    model->setHeaderData(3, Qt::Horizontal, QVariant("STATE"));
-    model->setHeaderData(4, Qt::Horizontal, QVariant("PPID"));
-    model->setHeaderData(5, Qt::Horizontal, QVariant("MEMORY"));
-    ui->tableView->setModel(model);
-    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->tableView->setSortingEnabled(true);
+    //ui->listView->add;
+    startTimer(500);
+}
 
+void MainWindow::AddNewProcess(string pidName)
+{
     struct sysinfo s_info;
     sysinfo(&s_info);
 
-    for(int i=0; i<ps.size(); i++)
-    {
-        pid_t pid=  QString::fromStdString(ps[i].getPid()).toFloat();
-        procinfo info;
-        get_proc_info(pid, &info);
+    pid_t pid=  QString::fromStdString(pidName).toFloat();
+    procinfo info;
+    get_proc_info(pid, &info);
+    QList<QStandardItem*> itens;
 
-        QStandardItem* pid_= new QStandardItem;
-        //pid_->setText(QString::number((info.pid)));
-        pid_->setData(info.pid, Qt::DisplayRole);
-        model->setItem(i, 0, pid_);
+    QStandardItem* pid_= new QStandardItem;
+    //pid_->setText(QString::number((info.pid)));
+    pid_->setData(info.pid, Qt::DisplayRole);
+    //model->setItem(i, 0, pid_);
+    itens << pid_;
 
-        QStandardItem* exName= new QStandardItem;
-        exName->setText(QString::fromStdString(info.exName));
-        model->setItem(i, 1, exName);
+    QStandardItem* exName= new QStandardItem;
+    exName->setText(QString::fromStdString(info.exName));
+    //model->setItem(i, 1, exName);
+    itens << exName;
 
-        float total_time= info.stime+info.utime;
-        float hz= sysconf(_SC_CLK_TCK);
-        float sec= s_info.uptime-(info.starttime/hz);
-        float cpu_use= 100*((total_time/hz)/sec);
+    float total_time= info.stime+info.utime;
+    float hz= sysconf(_SC_CLK_TCK);
+    float sec= s_info.uptime-(info.starttime/hz);
+    float cpu_use= 100*((total_time/hz)/sec);
 
-        QStandardItem* cpu_use_= new QStandardItem;
-        //cpu_use_->setText(QString::number(cpu_use));
-        cpu_use_->setData(cpu_use, Qt::DisplayRole);
-        model->setItem(i, 2, cpu_use_);
+    QStandardItem* cpu_use_= new QStandardItem;
+    //cpu_use_->setText(QString::number(cpu_use));
+    cpu_use_->setData(cpu_use, Qt::DisplayRole);
+    //model->setItem(i, 2, cpu_use_);
+    itens << cpu_use_;
 
-        QStandardItem* state= new QStandardItem;
-        QString estado(info.state);
-        state->setText(estado);
-        model->setItem(i, 3, state);
+    QStandardItem* state= new QStandardItem;
+    QString estado(info.state);
+    state->setText(estado);
+    //model->setItem(i, 3, state);
+    itens << state;
 
-        QStandardItem* ppid= new QStandardItem;
-        //ppid->setText(QString::number(info.ppid));
-        ppid->setData(info.ppid, Qt::DisplayRole);
-        model->setItem(i, 4, ppid);
+    QStandardItem* ppid= new QStandardItem;
+    //ppid->setText(QString::number(info.ppid));
+    ppid->setData(info.ppid, Qt::DisplayRole);
+    //model->setItem(i, 4, ppid);
+    itens << ppid;
 
-        QStandardItem* vsize= new QStandardItem;
-        //vsize->setText(QString::number(info.vsize/10E6));
-        vsize->setData(info.vsize/10E6, Qt::DisplayRole);
-        model->setItem(i, 5, vsize);
-    }
-    ui->tableView->setContextMenuPolicy(Qt::ActionsContextMenu);
-    QAction* killpid = new QAction("kill");
-    QAction* stoppid = new QAction("stop");
-    QAction* continuepid = new QAction("continue");
-    connect(killpid, SIGNAL(triggered()), this, SLOT(killProcess()));
-    connect(killpid, SIGNAL(triggered()), this, SLOT(stopProcess()));
-    connect(killpid, SIGNAL(triggered()), this, SLOT(continueProcess()));
-    ui->tableView->addAction(killpid);
-    ui->tableView->addAction(stoppid);
-    ui->tableView->addAction(continuepid);
-    //ui->listView->add;
-    startTimer(500);
+    QStandardItem* vsize= new QStandardItem;
+    //vsize->setText(QString::number(info.vsize/10E6));
+    vsize->setData(info.vsize/10E6, Qt::DisplayRole);
+    //model->setItem(i, 5, vsize);
+    itens << vsize;
+
+    model->appendRow(itens);
 }
 
 void MainWindow::killProcess()
@@ -325,9 +285,69 @@ void MainWindow::continueProcess()
 
 void MainWindow::timerEvent(QTimerEvent *e)
 {
+    DIR *dp;
+    dirent *dptr;
+    dp= opendir("/proc/");
+
+    vector<string> update_pid;
+
+    if(dp != NULL)
+    while((dptr= readdir(dp)) != NULL)
+    {
+        string sys_[]= {".", "..", "fs", "bus", "irq", "sys", "tty", "acpi", "scsi", "asound", "driver", "sysvipc"};
+        bool ok= true;
+        for(auto s: sys_)
+            if(dptr->d_name == s)
+            {
+                ok= false;
+                break;
+            }
+        if((int)dptr->d_type == 4 &&  ok)
+        {
+            update_pid.push_back(dptr->d_name);
+           // ps.push_back(Process(dptr->d_name));
+        }
+    }
+    closedir(dp);
+
+    for(int j=0; j<ps.size(); j++)
+    {
+        bool aindaExiste= false;
+        for(int i=0; i<update_pid.size(); i++)
+        {
+            if(update_pid[i]==ps[j])
+                aindaExiste= true;
+        }
+        if(!aindaExiste)
+        {
+            QList<QStandardItem*> itens;
+            itens= model->findItems(QString::fromStdString(ps[j]),Qt::MatchExactly, 0);
+            for(int k=0; k<itens.size(); k++)
+            {
+                int r= itens[k]->row();
+                model->removeRow(r);
+            }
+        }
+    }
+
+    for(int i=0; i<update_pid.size(); i++)
+    {
+        bool jaEsta= false;
+        for(int j=0; j<ps.size(); j++)
+        {
+            if(update_pid[i]==ps[j])
+                jaEsta= true;
+        }
+        if(!jaEsta)
+        {
+            AddNewProcess(update_pid[i]);
+            ps.push_back(update_pid[i]);
+        }
+    }
+
     struct sysinfo s_info;
     sysinfo(&s_info);
-    for(int i=0; i<ps.size(); i++)
+    for(int i=0; i<model->rowCount(); i++)
     {
         QStandardItem* Ppid= model->item(i,0);
         pid_t pid= QVariant(Ppid->data(Qt::DisplayRole)).toInt();
@@ -360,6 +380,10 @@ void MainWindow::timerEvent(QTimerEvent *e)
         vsize= model->item(i,5);
         vsize->setData(info.rss, Qt::DisplayRole);
         //vsize->setText(QString::number(info.rss*(size_t)sysconf( _SC_PAGESIZE)));
+
+        QStandardItem* state= model->item(i, 3);
+        QString estado(info.state);
+        state->setText(estado);
     }
 }
 
