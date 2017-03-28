@@ -196,8 +196,6 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     closedir(dp);
 
-
-    //ui->listView->add;
     startTimer(500);
 }
 
@@ -212,15 +210,10 @@ void MainWindow::AddNewProcess(string pidName)
     QList<QStandardItem*> itens;
 
     QStandardItem* pid_= new QStandardItem;
-    //pid_->setText(QString::number((info.pid)));
     pid_->setData(info.pid, Qt::DisplayRole);
-    //model->setItem(i, 0, pid_);
-    itens << pid_;
 
     QStandardItem* exName= new QStandardItem;
     exName->setText(QString::fromStdString(info.exName));
-    //model->setItem(i, 1, exName);
-    itens << exName;
 
     float total_time= info.stime+info.utime;
     float hz= sysconf(_SC_CLK_TCK);
@@ -228,28 +221,18 @@ void MainWindow::AddNewProcess(string pidName)
     float cpu_use= 100*((total_time/hz)/sec);
 
     QStandardItem* cpu_use_= new QStandardItem;
-    //cpu_use_->setText(QString::number(cpu_use));
     cpu_use_->setData(cpu_use, Qt::DisplayRole);
-    //model->setItem(i, 2, cpu_use_);
-    itens << cpu_use_;
 
     QStandardItem* state= new QStandardItem;
     QString estado(info.state);
     state->setText(estado);
-    //model->setItem(i, 3, state);
-    itens << state;
 
     QStandardItem* ppid= new QStandardItem;
-    //ppid->setText(QString::number(info.ppid));
     ppid->setData(info.ppid, Qt::DisplayRole);
-    //model->setItem(i, 4, ppid);
-    itens << ppid;
 
     QStandardItem* vsize= new QStandardItem;
-    //vsize->setText(QString::number(info.vsize/10E6));
     vsize->setData(info.vsize/10E6, Qt::DisplayRole);
-    //model->setItem(i, 5, vsize);
-    itens << vsize;
+    itens << pid_ << exName << cpu_use_ << state << ppid << vsize;
 
     model->appendRow(itens);
 }
