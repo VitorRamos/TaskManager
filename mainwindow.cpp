@@ -9,6 +9,7 @@
 #include <sstream>
 #include <vector>
 #include <QAction>
+#include <signal.h>
 
 #include <unistd.h>
 #include <sys/sysinfo.h>
@@ -166,8 +167,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QAction* stoppid = new QAction("stop");
     QAction* continuepid = new QAction("continue");
     connect(killpid, SIGNAL(triggered()), this, SLOT(killProcess()));
-    connect(killpid, SIGNAL(triggered()), this, SLOT(stopProcess()));
-    connect(killpid, SIGNAL(triggered()), this, SLOT(continueProcess()));
+    connect(stoppid, SIGNAL(triggered()), this, SLOT(stopProcess()));
+    connect(continuepid, SIGNAL(triggered()), this, SLOT(continueProcess()));
     ui->tableView->addAction(killpid);
     ui->tableView->addAction(stoppid);
     ui->tableView->addAction(continuepid);
@@ -259,7 +260,8 @@ void MainWindow::killProcess()
 
     foreach( QModelIndex index, selectedRows )
     {
-        //int row = index.row();
+        int row = index.row();
+        kill(QVariant(model->item(row,0)->data(Qt::DisplayRole)).toInt(), SIGKILL);
     }
 }
 
@@ -269,7 +271,9 @@ void MainWindow::stopProcess()
 
     foreach( QModelIndex index, selectedRows )
     {
-        //int row = index.row();
+        int row = index.row();
+        cout << QVariant(model->item(row,0)->data(Qt::DisplayRole)).toInt() << endl;
+        kill(QVariant(model->item(row,0)->data(Qt::DisplayRole)).toInt(), SIGSTOP);
     }
 }
 
@@ -279,7 +283,8 @@ void MainWindow::continueProcess()
 
     foreach( QModelIndex index, selectedRows )
     {
-        //int row = index.row();
+        int row = index.row();
+        kill(QVariant(model->item(row,0)->data(Qt::DisplayRole)).toInt(), SIGCONT);
     }
 }
 
