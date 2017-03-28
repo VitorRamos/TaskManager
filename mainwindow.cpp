@@ -196,8 +196,6 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     closedir(dp);
 
-
-    //ui->listView->add;
     startTimer(500);
 }
 
@@ -212,14 +210,11 @@ void MainWindow::AddNewProcess(string pidName)
     QList<QStandardItem*> itens;
 
     QStandardItem* pid_= new QStandardItem;
-    //pid_->setText(QString::number((info.pid)));
     pid_->setData(info.pid, Qt::DisplayRole);
-    //model->setItem(i, 0, pid_);
     itens << pid_;
 
     QStandardItem* exName= new QStandardItem;
     exName->setText(QString::fromStdString(info.exName));
-    //model->setItem(i, 1, exName);
     itens << exName;
 
     float total_time= info.stime+info.utime;
@@ -228,9 +223,7 @@ void MainWindow::AddNewProcess(string pidName)
     float cpu_use= 100*((total_time/hz)/sec);
 
     QStandardItem* cpu_use_= new QStandardItem;
-    //cpu_use_->setText(QString::number(cpu_use));
     cpu_use_->setData(cpu_use, Qt::DisplayRole);
-    //model->setItem(i, 2, cpu_use_);
     itens << cpu_use_;
 
     QStandardItem* state= new QStandardItem;
@@ -248,15 +241,11 @@ void MainWindow::AddNewProcess(string pidName)
     itens << state;
 
     QStandardItem* ppid= new QStandardItem;
-    //ppid->setText(QString::number(info.ppid));
     ppid->setData(info.ppid, Qt::DisplayRole);
-    //model->setItem(i, 4, ppid);
     itens << ppid;
 
     QStandardItem* vsize= new QStandardItem;
-    //vsize->setText(QString::number(info.vsize/10E6));
     vsize->setData(info.vsize/10E6, Qt::DisplayRole);
-    //model->setItem(i, 5, vsize);
     itens << vsize;
 
     model->appendRow(itens);
@@ -318,7 +307,6 @@ void MainWindow::timerEvent(QTimerEvent *e)
         if((int)dptr->d_type == 4 &&  ok)
         {
             update_pid.push_back(dptr->d_name);
-           // ps.push_back(Process(dptr->d_name));
         }
     }
     closedir(dp);
@@ -387,12 +375,10 @@ void MainWindow::timerEvent(QTimerEvent *e)
         QStandardItem* cpu_use_;
         cpu_use_= model->item(i,2);
         cpu_use_->setData(cpu_use, Qt::DisplayRole);
-        //cpu_use_->setText(QString::number(cpu_use));
 
         QStandardItem* vsize;
         vsize= model->item(i,5);
         vsize->setData(info.rss, Qt::DisplayRole);
-        //vsize->setText(QString::number(info.rss*(size_t)sysconf( _SC_PAGESIZE)));
 
         QStandardItem* state= model->item(i, 3);
         QString estado(info.state);
