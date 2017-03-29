@@ -59,6 +59,15 @@ typedef struct statstruct_proc {
   unsigned int  wchan;  /** 33 **/        /** (too long) **/
   int		sched, 		  /** scheduler **/
                 sched_priority;		  /** scheduler priority **/
+  unsigned long nswap;/** 35 **/
+  unsigned long cnswap;/** 36 **/
+  int exit_signal;/** 37 **/
+  int processor;/** 38 **/
+  unsigned rt_priority;/** 39 **/
+  unsigned rt_policy;/** 40 **/
+  unsigned long long delayacct_blkio_ticks;/** 41 **/
+  unsigned long guest_time;/** 42 **/
+  unsigned int cguest_time;/** 43 **/
 
 } procinfo;
 
@@ -105,8 +114,8 @@ int get_proc_info(pid_t pid, procinfo * pinfo)
   strncpy (pinfo->exName, s, t - s);
   pinfo->exName [t - s] = '\0';
 
-  sscanf (t + 2, "%c %d %d %d %d %d %u %u %u %u %u %d %d %d %d %d %d %u %u %d %u %u %u %u %u %u %u %u %d %d %d %d %u",
-      /*       1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33*/
+  sscanf (t + 2, "%c %d %d %d %d %d %u %u %u %u %u %d %d %d %d %d %d %u %u %d %u %u %u %u %u %u %u %u %d %d %d %d %u %lu %lu %d %d %u %u %llu %lu %ld",
+      /*       1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43*/
       &(pinfo->state),
       &(pinfo->ppid),
       &(pinfo->pgrp),
@@ -139,7 +148,18 @@ int get_proc_info(pid_t pid, procinfo * pinfo)
       &(pinfo->blocked),
       &(pinfo->sigignore),
       &(pinfo->sigcatch),
-      &(pinfo->wchan));
+      &(pinfo->wchan),
+      &(pinfo->cnswap),
+      &(pinfo->exit_signal),
+      &(pinfo->processor),
+      &(pinfo->cnswap),
+      &(pinfo->exit_signal),
+      &(pinfo->processor),
+      &(pinfo->rt_priority),
+      &(pinfo->rt_policy),
+      &(pinfo->delayacct_blkio_ticks),
+      &(pinfo->guest_time),
+      &(pinfo->cguest_time));
   fclose (fp);
   return 0;
 }
@@ -149,6 +169,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    ui->customPlot->addGraph();
+    ui->customPlot->xAxis->setLabel("TIME");
+    ui->customPlot->yAxis->setLabel("%CPU");
+    ui->customPlot->yAxis->setAutoTickStep(false);
+    ui->customPlot->yAxis->setRange(0, 100);
+    ui->customPlot->yAxis->setTickStep(10);
+
 
     model= new QStandardItemModel(ps.size(),6,this);
     model->setHeaderData(0, Qt::Horizontal, QVariant("PID"));
@@ -283,8 +311,15 @@ void MainWindow::continueProcess()
     }
 }
 
+double tempo=0;
+
 void MainWindow::timerEvent(QTimerEvent *e)
 {
+    tempo+=0.5;
+    ui->customPlot->replot();
+    ui->customPlot->graph(0)->removeDataBefore(tempo-12);
+    ui->customPlot->xAxis->setRange(tempo + 0.25, 10, Qt::AlignRight);
+
     DIR *dp;
     dirent *dptr;
     dp= opendir("/proc/");
@@ -343,7 +378,7 @@ void MainWindow::timerEvent(QTimerEvent *e)
             ps.push_back(update_pid[i]);
         }
     }
-
+    float totalCPU[2]={0,0};
     struct sysinfo s_info;
     sysinfo(&s_info);
     for(int i=0; i<model->rowCount(); i++)
@@ -370,6 +405,7 @@ void MainWindow::timerEvent(QTimerEvent *e)
         float hz= sysconf(_SC_CLK_TCK);
         float sec= s_info.uptime-(info.starttime/hz);
         float cpu_use= 100*((total_time/hz)/sec);
+        totalCPU[info.processor]+=cpu_use;
 
         QStandardItem* cpu_use_;
         cpu_use_= model->item(i,2);
@@ -390,6 +426,8 @@ void MainWindow::timerEvent(QTimerEvent *e)
         else if(estado == "T")
             state->setText("Stopped");
     }
+    //cout << totalCPU[0]/4.0 << " " << totalCPU[1] << endl;
+    ui->customPlot->graph(0)->addData(tempo, totalCPU[0]/4.0>100.0?100.0:totalCPU[0]/4.0);
 }
 
 MainWindow::~MainWindow()
