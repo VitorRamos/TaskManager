@@ -227,7 +227,17 @@ void MainWindow::AddNewProcess(string pidName)
 
     QStandardItem* state= new QStandardItem;
     QString estado(info.state);
-    state->setText(estado);
+
+    if(estado == "R")
+        state->setText("Running");
+    else if(estado == "S" || estado == "D")
+        state->setText("Sleeping");
+    else if(estado == "Z")
+        state->setText("Zombie");
+    else if(estado == "T")
+        state->setText("Stopped");
+
+    //state->setText(estado);
 
     QStandardItem* ppid= new QStandardItem;
     ppid->setData(info.ppid, Qt::DisplayRole);
@@ -295,7 +305,6 @@ void MainWindow::timerEvent(QTimerEvent *e)
         if((int)dptr->d_type == 4 &&  ok)
         {
             update_pid.push_back(dptr->d_name);
-           // ps.push_back(Process(dptr->d_name));
         }
     }
     closedir(dp);
@@ -365,16 +374,21 @@ void MainWindow::timerEvent(QTimerEvent *e)
         QStandardItem* cpu_use_;
         cpu_use_= model->item(i,2);
         cpu_use_->setData(cpu_use, Qt::DisplayRole);
-        //cpu_use_->setText(QString::number(cpu_use));
 
         QStandardItem* vsize;
         vsize= model->item(i,5);
         vsize->setData(info.rss, Qt::DisplayRole);
-        //vsize->setText(QString::number(info.rss*(size_t)sysconf( _SC_PAGESIZE)));
 
         QStandardItem* state= model->item(i, 3);
         QString estado(info.state);
-        state->setText(estado);
+        if(estado == "R")
+            state->setText("Running");
+        else if(estado == "S" || estado == "D")
+            state->setText("Sleeping");
+        else if(estado == "Z")
+            state->setText("Zombie");
+        else if(estado == "T")
+            state->setText("Stopped");
     }
 }
 
