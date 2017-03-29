@@ -173,6 +173,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableView->addAction(stoppid);
     ui->tableView->addAction(continuepid);
 
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
     DIR *dp;
     dirent *dptr;
     dp= opendir("/proc/");
@@ -344,8 +346,10 @@ void MainWindow::timerEvent(QTimerEvent *e)
         get_proc_info(pid, &info);
 
         QString nome= QString(info.exName);
+        QString spid= QString::number(info.pid);
 
-        if( !nome.contains(ui->lineEdit->text()) && ui->lineEdit->text() != "")
+        if( !nome.contains(ui->lineEdit->text()) && ui->lineEdit->text() != ""
+        ||  !spid.contains(ui->lineEdit_2->text()) && ui->lineEdit_2->text() != "" )
         {
             ui->tableView->hideRow(i);
         }
@@ -353,7 +357,6 @@ void MainWindow::timerEvent(QTimerEvent *e)
         {
             ui->tableView->showRow(i);
         }
-
         float total_time= info.stime+info.utime;
         float hz= sysconf(_SC_CLK_TCK);
         float sec= s_info.uptime-(info.starttime/hz);
