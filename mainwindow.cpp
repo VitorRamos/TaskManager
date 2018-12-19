@@ -79,7 +79,7 @@ int get_proc_info(pid_t pid, procinfo * pinfo)
   FILE *fp;
   struct stat st;
 
-  if (NULL == pinfo) {
+  if (nullptr == pinfo) {
     errno = EINVAL;
     return -1;
   }
@@ -98,11 +98,11 @@ int get_proc_info(pid_t pid, procinfo * pinfo)
   }
 
 
-  if ((fp = fopen (szFileName, "r")) == NULL) {
+  if ((fp = fopen (szFileName, "r")) == nullptr) {
     return (pinfo->pid = -1);
   } /** IF_NULL **/
 
-  if ((s = fgets (szStatStr, 2048, fp)) == NULL) {
+  if ((s = fgets (szStatStr, 2048, fp)) == nullptr) {
     fclose (fp);
     return (pinfo->pid = -1);
   }
@@ -207,8 +207,8 @@ MainWindow::MainWindow(QWidget *parent) :
     dirent *dptr;
     dp= opendir("/proc/");
 
-    if(dp != NULL)
-    while((dptr= readdir(dp)) != NULL)
+    if(dp != nullptr)
+    while((dptr= readdir(dp)) != nullptr)
     {
         string sys_[]= {".", "..", "fs", "bus", "irq", "sys", "tty", "acpi", "scsi", "asound", "driver", "sysvipc"};
         bool ok= true;
@@ -326,8 +326,8 @@ void MainWindow::timerEvent(QTimerEvent *e)
 
     vector<string> update_pid;
 
-    if(dp != NULL)
-    while((dptr= readdir(dp)) != NULL)
+    if(dp != nullptr)
+    while((dptr= readdir(dp)) != nullptr)
     {
         string sys_[]= {".", "..", "fs", "bus", "irq", "sys", "tty", "acpi", "scsi", "asound", "driver", "sysvipc"};
         bool ok= true;
