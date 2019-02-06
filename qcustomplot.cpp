@@ -755,7 +755,7 @@ QCPLayer::~QCPLayer()
   // call QCustomPlot::removeLayer, which moves all layerables off this layer before deleting it.)
   
   while (!mChildren.isEmpty())
-    mChildren.last()->setLayer(0); // removes itself from mChildren via removeChild()
+    mChildren.last()->setLayer(nullptr); // removes itself from mChildren via removeChild()
   
   if (mParentPlot->currentLayer() == this)
     qDebug() << Q_FUNC_INFO << "The parent plot's mCurrentLayer will be a dangling pointer. Should have been set to a valid layer or 0 beforehand.";
@@ -924,7 +924,7 @@ QCPLayerable::QCPLayerable(QCustomPlot *plot, QString targetLayer, QCPLayerable 
   mVisible(true),
   mParentPlot(plot),
   mParentLayerable(parentLayerable),
-  mLayer(0),
+  mLayer(nullptr),
   mAntialiased(true)
 {
   if (mParentPlot)
@@ -941,7 +941,7 @@ QCPLayerable::~QCPLayerable()
   if (mLayer)
   {
     mLayer->removeChild(this);
-    mLayer = 0;
+    mLayer = nullptr;
   }
 }
 
@@ -1578,7 +1578,7 @@ void QCPMarginGroup::clear()
     it.next();
     const QList<QCPLayoutElement*> elements = it.value();
     for (int i=elements.size()-1; i>=0; --i)
-      elements.at(i)->setMarginGroup(it.key(), 0); // removes itself from mChildren via removeChild
+      elements.at(i)->setMarginGroup(it.key(), nullptr); // removes itself from mChildren via removeChild
   }
 }
 
@@ -1721,7 +1721,7 @@ void QCPMarginGroup::removeChild(QCP::MarginSide side, QCPLayoutElement *element
 */
 QCPLayoutElement::QCPLayoutElement(QCustomPlot *parentPlot) :
   QCPLayerable(parentPlot), // parenthood is changed as soon as layout element gets inserted into a layout (except for top level layout)
-  mParentLayout(0),
+  mParentLayout(nullptr),
   mMinimumSize(),
   mMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX),
   mRect(0, 0, 0, 0),
@@ -1734,7 +1734,7 @@ QCPLayoutElement::QCPLayoutElement(QCustomPlot *parentPlot) :
 
 QCPLayoutElement::~QCPLayoutElement()
 {
-  setMarginGroup(QCP::msAll, 0); // unregister at margin groups, if there are any
+  setMarginGroup(QCP::msAll, nullptr); // unregister at margin groups, if there are any
   // unregister at layout:
   if (qobject_cast<QCPLayout*>(mParentLayout)) // the qobject_cast is just a safeguard in case the layout forgets to call clear() in its dtor and this dtor is called by QObject dtor
     mParentLayout->take(this);
@@ -2306,8 +2306,8 @@ void QCPLayout::releaseElement(QCPLayoutElement *el)
 {
   if (el)
   {
-    el->mParentLayout = 0;
-    el->setParentLayerable(0);
+    el->mParentLayout = nullptr;
+    el->setParentLayerable(nullptr);
     el->setParent(mParentPlot);
     // Note: Don't initializeParentPlot(0) here, because layout element will stay in same parent plot
   } else
@@ -2515,7 +2515,7 @@ QCPLayoutElement *QCPLayoutGrid::element(int row, int column) const
       qDebug() << Q_FUNC_INFO << "Invalid column. Row:" << row << "Column:" << column;
   } else
     qDebug() << Q_FUNC_INFO << "Invalid row. Row:" << row << "Column:" << column;
-  return 0;
+  return nullptr;
 }
 
 /*!
@@ -2761,7 +2761,7 @@ void QCPLayoutGrid::insertRow(int newIndex)
   mRowStretchFactors.insert(newIndex, 1);
   QList<QCPLayoutElement*> newRow;
   for (int col=0; col<columnCount(); ++col)
-    newRow.append((QCPLayoutElement*)0);
+    newRow.append((QCPLayoutElement*)nullptr);
   mElements.insert(newIndex, newRow);
 }
 
@@ -2786,7 +2786,7 @@ void QCPLayoutGrid::insertColumn(int newIndex)
   
   mColumnStretchFactors.insert(newIndex, 1);
   for (int row=0; row<rowCount(); ++row)
-    mElements[row].insert(newIndex, (QCPLayoutElement*)0);
+    mElements[row].insert(newIndex, (QCPLayoutElement*)nullptr);
 }
 
 /* inherits documentation from base class */
@@ -2830,7 +2830,7 @@ QCPLayoutElement *QCPLayoutGrid::elementAt(int index) const
   if (index >= 0 && index < elementCount())
     return mElements.at(index / columnCount()).at(index % columnCount());
   else
-    return 0;
+    return nullptr;
 }
 
 /* inherits documentation from base class */
@@ -2844,7 +2844,7 @@ QCPLayoutElement *QCPLayoutGrid::takeAt(int index)
   } else
   {
     qDebug() << Q_FUNC_INFO << "Attempt to take invalid index:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -3112,7 +3112,7 @@ Qt::Alignment QCPLayoutInset::insetAlignment(int index) const
   else
   {
     qDebug() << Q_FUNC_INFO << "Invalid element index:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -3233,7 +3233,7 @@ QCPLayoutElement *QCPLayoutInset::elementAt(int index) const
   if (index >= 0 && index < mElements.size())
     return mElements.at(index);
   else
-    return 0;
+    return nullptr;
 }
 
 /* inherits documentation from base class */
@@ -3250,7 +3250,7 @@ QCPLayoutElement *QCPLayoutInset::takeAt(int index)
   } else
   {
     qDebug() << Q_FUNC_INFO << "Attempt to take invalid index:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -7463,12 +7463,12 @@ QCPItemAnchor::~QCPItemAnchor()
   foreach (QCPItemPosition *child, mChildrenX.toList())
   {
     if (child->parentAnchorX() == this)
-      child->setParentAnchorX(0); // this acts back on this anchor and child removes itself from mChildrenX
+      child->setParentAnchorX(nullptr); // this acts back on this anchor and child removes itself from mChildrenX
   }
   foreach (QCPItemPosition *child, mChildrenY.toList())
   {
     if (child->parentAnchorY() == this)
-      child->setParentAnchorY(0); // this acts back on this anchor and child removes itself from mChildrenY
+      child->setParentAnchorY(nullptr); // this acts back on this anchor and child removes itself from mChildrenY
   }
 }
 
@@ -7628,8 +7628,8 @@ QCPItemPosition::QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *paren
   mPositionTypeY(ptAbsolute),
   mKey(0),
   mValue(0),
-  mParentAnchorX(0),
-  mParentAnchorY(0)
+  mParentAnchorX(nullptr),
+  mParentAnchorY(nullptr)
 {
 }
 
@@ -7641,12 +7641,12 @@ QCPItemPosition::~QCPItemPosition()
   foreach (QCPItemPosition *child, mChildrenX.toList())
   {
     if (child->parentAnchorX() == this)
-      child->setParentAnchorX(0); // this acts back on this anchor and child removes itself from mChildrenX
+      child->setParentAnchorX(nullptr); // this acts back on this anchor and child removes itself from mChildrenX
   }
   foreach (QCPItemPosition *child, mChildrenY.toList())
   {
     if (child->parentAnchorY() == this)
-      child->setParentAnchorY(0); // this acts back on this anchor and child removes itself from mChildrenY
+      child->setParentAnchorY(nullptr); // this acts back on this anchor and child removes itself from mChildrenY
   }
   // unregister as child in parent:
   if (mParentAnchorX)
@@ -8448,7 +8448,7 @@ QCPItemPosition *QCPAbstractItem::position(const QString &name) const
       return mPositions.at(i);
   }
   qDebug() << Q_FUNC_INFO << "position with name not found:" << name;
-  return 0;
+  return nullptr;
 }
 
 /*!
@@ -8469,7 +8469,7 @@ QCPItemAnchor *QCPAbstractItem::anchor(const QString &name) const
       return mAnchors.at(i);
   }
   qDebug() << Q_FUNC_INFO << "anchor with name not found:" << name;
-  return 0;
+  return nullptr;
 }
 
 /*!
@@ -9016,26 +9016,26 @@ QCP::Interaction QCPAbstractItem::selectionCategory() const
 */
 QCustomPlot::QCustomPlot(QWidget *parent) :
   QWidget(parent),
-  xAxis(0),
-  yAxis(0),
-  xAxis2(0),
-  yAxis2(0),
-  legend(0),
-  mPlotLayout(0),
+  xAxis(nullptr),
+  yAxis(nullptr),
+  xAxis2(nullptr),
+  yAxis2(nullptr),
+  legend(nullptr),
+  mPlotLayout(nullptr),
   mAutoAddPlottableToLegend(true),
   mAntialiasedElements(QCP::aeNone),
   mNotAntialiasedElements(QCP::aeNone),
-  mInteractions(0),
+  mInteractions(nullptr),
   mSelectionTolerance(8),
   mNoAntialiasingOnDrag(false),
   mBackgroundBrush(Qt::white, Qt::SolidPattern),
   mBackgroundScaled(true),
   mBackgroundScaledMode(Qt::KeepAspectRatioByExpanding),
-  mCurrentLayer(0),
+  mCurrentLayer(nullptr),
   mPlottingHints(QCP::phCacheLabels|QCP::phForceRepaint),
   mMultiSelectModifier(Qt::ControlModifier),
   mPaintBuffer(size()),
-  mMouseEventElement(0),
+  mMouseEventElement(nullptr),
   mReplotting(false)
 {
   setAttribute(Qt::WA_NoMousePropagation);
@@ -9094,10 +9094,10 @@ QCustomPlot::~QCustomPlot()
   if (mPlotLayout)
   {
     delete mPlotLayout;
-    mPlotLayout = 0;
+    mPlotLayout = nullptr;
   }
   
-  mCurrentLayer = 0;
+  mCurrentLayer = nullptr;
   qDeleteAll(mLayers); // don't use removeLayer, because it would prevent the last layer to be removed
   mLayers.clear();
 }
@@ -9462,7 +9462,7 @@ QCPAbstractPlottable *QCustomPlot::plottable(int index)
   } else
   {
     qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -9479,7 +9479,7 @@ QCPAbstractPlottable *QCustomPlot::plottable()
   {
     return mPlottables.last();
   } else
-    return 0;
+    return nullptr;
 }
 
 /*!
@@ -9615,7 +9615,7 @@ QList<QCPAbstractPlottable*> QCustomPlot::selectedPlottables() const
 */
 QCPAbstractPlottable *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable) const
 {
-  QCPAbstractPlottable *resultPlottable = 0;
+  QCPAbstractPlottable *resultPlottable = nullptr;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
   
   foreach (QCPAbstractPlottable *plottable, mPlottables)
@@ -9662,7 +9662,7 @@ QCPGraph *QCustomPlot::graph(int index) const
   } else
   {
     qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -9679,7 +9679,7 @@ QCPGraph *QCustomPlot::graph() const
   {
     return mGraphs.last();
   } else
-    return 0;
+    return nullptr;
 }
 
 /*!
@@ -9701,12 +9701,12 @@ QCPGraph *QCustomPlot::addGraph(QCPAxis *keyAxis, QCPAxis *valueAxis)
   if (!keyAxis || !valueAxis)
   {
     qDebug() << Q_FUNC_INFO << "can't use default QCustomPlot xAxis or yAxis, because at least one is invalid (has been deleted)";
-    return 0;
+    return nullptr;
   }
   if (keyAxis->parentPlot() != this || valueAxis->parentPlot() != this)
   {
     qDebug() << Q_FUNC_INFO << "passed keyAxis or valueAxis doesn't have this QCustomPlot as parent";
-    return 0;
+    return nullptr;
   }
   
   QCPGraph *newGraph = new QCPGraph(keyAxis, valueAxis);
@@ -9717,7 +9717,7 @@ QCPGraph *QCustomPlot::addGraph(QCPAxis *keyAxis, QCPAxis *valueAxis)
   } else
   {
     delete newGraph;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -9807,7 +9807,7 @@ QCPAbstractItem *QCustomPlot::item(int index) const
   } else
   {
     qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -9824,7 +9824,7 @@ QCPAbstractItem *QCustomPlot::item() const
   {
     return mItems.last();
   } else
-    return 0;
+    return nullptr;
 }
 
 /*!
@@ -9940,7 +9940,7 @@ QList<QCPAbstractItem*> QCustomPlot::selectedItems() const
 */
 QCPAbstractItem *QCustomPlot::itemAt(const QPointF &pos, bool onlySelectable) const
 {
-  QCPAbstractItem *resultItem = 0;
+  QCPAbstractItem *resultItem = nullptr;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
   
   foreach (QCPAbstractItem *item, mItems)
@@ -9986,7 +9986,7 @@ QCPLayer *QCustomPlot::layer(const QString &name) const
     if (layer->name() == name)
       return layer;
   }
-  return 0;
+  return nullptr;
 }
 
 /*! \overload
@@ -10003,7 +10003,7 @@ QCPLayer *QCustomPlot::layer(int index) const
   } else
   {
     qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -10215,7 +10215,7 @@ QCPAxisRect *QCustomPlot::axisRect(int index) const
   } else
   {
     qDebug() << Q_FUNC_INFO << "invalid axis rect index" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -10346,7 +10346,7 @@ void QCustomPlot::deselectAll()
   foreach (QCPLayer *layer, mLayers)
   {
     foreach (QCPLayerable *layerable, layer->children())
-      layerable->deselectEvent(0);
+      layerable->deselectEvent(nullptr);
   }
 }
 
@@ -10699,7 +10699,7 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
   else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(clickedLayerable))
     emit itemDoubleClick(ai, event);
   else if (QCPLegend *lg = qobject_cast<QCPLegend*>(clickedLayerable))
-    emit legendDoubleClick(lg, 0, event);
+    emit legendDoubleClick(lg, nullptr, event);
   else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(clickedLayerable))
     emit legendDoubleClick(li->parentLegend(), li, event);
   else if (QCPPlotTitle *pt = qobject_cast<QCPPlotTitle*>(clickedLayerable))
@@ -10713,7 +10713,7 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
   if (mMouseEventElement)
   {
     mMouseEventElement->mouseReleaseEvent(event);
-    mMouseEventElement = 0;
+    mMouseEventElement = nullptr;
   }
   
   //QWidget::mouseDoubleClickEvent(event); don't call base class implementation because it would just cause a mousePress/ReleaseEvent, which we don't want.
@@ -10827,7 +10827,7 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
     else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(clickedLayerable))
       emit itemClick(ai, event);
     else if (QCPLegend *lg = qobject_cast<QCPLegend*>(clickedLayerable))
-      emit legendClick(lg, 0, event);
+      emit legendClick(lg, nullptr, event);
     else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(clickedLayerable))
       emit legendClick(li->parentLegend(), li, event);
     else if (QCPPlotTitle *pt = qobject_cast<QCPPlotTitle*>(clickedLayerable))
@@ -10838,7 +10838,7 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
   if (mMouseEventElement)
   {
     mMouseEventElement->mouseReleaseEvent(event);
-    mMouseEventElement = 0;
+    mMouseEventElement = nullptr;
   }
   
   if (doReplot || noAntialiasingOnDrag())
@@ -10957,13 +10957,13 @@ void QCustomPlot::drawBackground(QCPPainter *painter)
 void QCustomPlot::axisRemoved(QCPAxis *axis)
 {
   if (xAxis == axis)
-    xAxis = 0;
+    xAxis = nullptr;
   if (xAxis2 == axis)
-    xAxis2 = 0;
+    xAxis2 = nullptr;
   if (yAxis == axis)
-    yAxis = 0;
+    yAxis = nullptr;
   if (yAxis2 == axis)
-    yAxis2 = 0;
+    yAxis2 = nullptr;
   
   // Note: No need to take care of range drag axes and range zoom axes, because they are stored in smart pointers
 }
@@ -10976,7 +10976,7 @@ void QCustomPlot::axisRemoved(QCPAxis *axis)
 void QCustomPlot::legendRemoved(QCPLegend *legend)
 {
   if (this->legend == legend)
-    this->legend = 0;
+    this->legend = nullptr;
 }
 
 /*! \internal
@@ -11009,7 +11009,7 @@ QCPLayerable *QCustomPlot::layerableAt(const QPointF &pos, bool onlySelectable, 
   {
     const QList<QCPLayerable*> layerables = mLayers.at(layerIndex)->children();
     double minimumDistance = selectionTolerance()*1.1;
-    QCPLayerable *minimumDistanceLayerable = 0;
+    QCPLayerable *minimumDistanceLayerable = nullptr;
     for (int i=layerables.size()-1; i>=0; --i)
     {
       if (!layerables.at(i)->realVisibility())
@@ -11026,7 +11026,7 @@ QCPLayerable *QCustomPlot::layerableAt(const QPointF &pos, bool onlySelectable, 
     if (minimumDistance < selectionTolerance())
       return minimumDistanceLayerable;
   }
-  return 0;
+  return nullptr;
 }
 
 /*!
@@ -11770,7 +11770,7 @@ QCPAxisRect::QCPAxisRect(QCustomPlot *parentPlot, bool setupDefaultAxes) :
 QCPAxisRect::~QCPAxisRect()
 {
   delete mInsetLayout;
-  mInsetLayout = 0;
+  mInsetLayout = nullptr;
   
   QList<QCPAxis*> axesList = axes();
   for (int i=0; i<axesList.size(); ++i)
@@ -11801,7 +11801,7 @@ QCPAxis *QCPAxisRect::axis(QCPAxis::AxisType type, int index) const
   } else
   {
     qDebug() << Q_FUNC_INFO << "Axis index out of bounds:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -11873,17 +11873,17 @@ QCPAxis *QCPAxisRect::addAxis(QCPAxis::AxisType type, QCPAxis *axis)
     if (newAxis->axisType() != type)
     {
       qDebug() << Q_FUNC_INFO << "passed axis has different axis type than specified in type parameter";
-      return 0;
+      return nullptr;
     }
     if (newAxis->axisRect() != this)
     {
       qDebug() << Q_FUNC_INFO << "passed axis doesn't have this axis rect as parent axis rect";
-      return 0;
+      return nullptr;
     }
     if (axes().contains(newAxis))
     {
       qDebug() << Q_FUNC_INFO << "passed axis is already owned by this axis rect";
-      return 0;
+      return nullptr;
     }
   }
   if (mAxes[type].size() > 0) // multiple axes on one side, add half-bar axis ending to additional axes with offset
@@ -13248,7 +13248,7 @@ QCPPlottableLegendItem *QCPLegend::itemWithPlottable(const QCPAbstractPlottable 
         return pli;
     }
   }
-  return 0;
+  return nullptr;
 }
 
 /*!
@@ -13908,8 +13908,8 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
     mColorAxis.data()->setScaleLogBase(logBaseTransfer); // scaleType is synchronized among axes in realtime via signals (connected in QCPColorScale ctor), so we only need to take care of log base here
     connect(mColorAxis.data(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(setDataRange(QCPRange)));
     connect(mColorAxis.data(), SIGNAL(scaleTypeChanged(QCPAxis::ScaleType)), this, SLOT(setDataScaleType(QCPAxis::ScaleType)));
-    mAxisRect.data()->setRangeDragAxes(QCPAxis::orientation(mType) == Qt::Horizontal ? mColorAxis.data() : 0,
-                                       QCPAxis::orientation(mType) == Qt::Vertical ? mColorAxis.data() : 0);
+    mAxisRect.data()->setRangeDragAxes(QCPAxis::orientation(mType) == Qt::Horizontal ? mColorAxis.data() : nullptr,
+                                       QCPAxis::orientation(mType) == Qt::Vertical ? mColorAxis.data() : nullptr);
   }
 }
 
@@ -14015,7 +14015,7 @@ void QCPColorScale::setRangeDrag(bool enabled)
   if (enabled)
     mAxisRect.data()->setRangeDrag(QCPAxis::orientation(mType));
   else
-    mAxisRect.data()->setRangeDrag(0);
+    mAxisRect.data()->setRangeDrag(nullptr);
 }
 
 /*!
@@ -14035,7 +14035,7 @@ void QCPColorScale::setRangeZoom(bool enabled)
   if (enabled)
     mAxisRect.data()->setRangeZoom(QCPAxis::orientation(mType));
   else
-    mAxisRect.data()->setRangeZoom(0);
+    mAxisRect.data()->setRangeZoom(nullptr);
 }
 
 /*!
@@ -14495,7 +14495,7 @@ QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   setErrorType(etNone);
   setErrorBarSize(6);
   setErrorBarSkipSymbol(true);
-  setChannelFillGraph(0);
+  setChannelFillGraph(nullptr);
   setAdaptiveSampling(true);
 }
 
@@ -14801,14 +14801,14 @@ void QCPGraph::setChannelFillGraph(QCPGraph *targetGraph)
   if (targetGraph == this)
   {
     qDebug() << Q_FUNC_INFO << "targetGraph is this graph itself";
-    mChannelFillGraph = 0;
+    mChannelFillGraph = nullptr;
     return;
   }
   // prevent setting channel target to a graph not in the plot:
   if (targetGraph && targetGraph->mParentPlot != mParentPlot)
   {
     qDebug() << Q_FUNC_INFO << "targetGraph not in same plot";
-    mChannelFillGraph = 0;
+    mChannelFillGraph = nullptr;
     return;
   }
   
@@ -15082,7 +15082,7 @@ void QCPGraph::draw(QCPPainter *painter)
   
   // allocate line and (if necessary) point vectors:
   QVector<QPointF> *lineData = new QVector<QPointF>;
-  QVector<QCPData> *scatterData = 0;
+  QVector<QCPData> *scatterData = nullptr;
   if (!mScatterStyle.isNone())
     scatterData = new QVector<QCPData>;
   
@@ -15200,7 +15200,7 @@ void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPData> *scatter
 */
 void QCPGraph::getScatterPlotData(QVector<QCPData> *scatterData) const
 {
-  getPreparedData(0, scatterData);
+  getPreparedData(nullptr, scatterData);
 }
 
 /*! \internal
@@ -15818,7 +15818,7 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
     }
   } else // don't use adaptive sampling algorithm, transfer points one-to-one from the map into the output parameters
   {
-    QVector<QCPData> *dataVector = 0;
+    QVector<QCPData> *dataVector = nullptr;
     if (lineData)
       dataVector = lineData;
     else if (scatterData)
@@ -16202,7 +16202,7 @@ const QPolygonF QCPGraph::getChannelFillPolygon(const QVector<QPointF> *lineData
   
   if (lineData->isEmpty()) return QPolygonF();
   QVector<QPointF> otherData;
-  mChannelFillGraph.data()->getPlotData(&otherData, 0);
+  mChannelFillGraph.data()->getPlotData(&otherData, nullptr);
   if (otherData.isEmpty()) return QPolygonF();
   QVector<QPointF> thisData;
   thisData.reserve(lineData->size()+otherData.size()); // because we will join both vectors at end of this function
@@ -16426,7 +16426,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
   {
     // line displayed, calculate distance to line segments:
     QVector<QPointF> lineData;
-    getPlotData(&lineData, 0); // unlike with getScatterPlotData we get pixel coordinates here
+    getPlotData(&lineData, nullptr); // unlike with getScatterPlotData we get pixel coordinates here
     if (lineData.size() > 1) // at least one line segment, compare distance to line segments
     {
       double minDistSqr = std::numeric_limits<double>::max();
@@ -18133,7 +18133,7 @@ QCPBars *QCPBarsGroup::bars(int index) const
   } else
   {
     qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -18145,7 +18145,7 @@ QCPBars *QCPBarsGroup::bars(int index) const
 void QCPBarsGroup::clear()
 {
   foreach (QCPBars *bars, mBars) // since foreach takes a copy, removing bars in the loop is okay
-    bars->setBarsGroup(0); // removes itself via removeBars
+    bars->setBarsGroup(nullptr); // removes itself via removeBars
 }
 
 /*!
@@ -18206,7 +18206,7 @@ void QCPBarsGroup::remove(QCPBars *bars)
   }
   
   if (mBars.contains(bars))
-    bars->setBarsGroup(0);
+    bars->setBarsGroup(nullptr);
   else
     qDebug() << Q_FUNC_INFO << "bars plottable is not in this bars group:" << reinterpret_cast<quintptr>(bars);
 }
@@ -18458,7 +18458,7 @@ QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mData(new QCPBarDataMap),
   mWidth(0.75),
   mWidthType(wtPlotCoords),
-  mBarsGroup(0),
+  mBarsGroup(nullptr),
   mBaseValue(0)
 {
   // modify inherited properties from abstract plottable:
@@ -18474,7 +18474,7 @@ QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
 
 QCPBars::~QCPBars()
 {
-  setBarsGroup(0);
+  setBarsGroup(nullptr);
   if (mBarBelow || mBarAbove)
     connectBars(mBarBelow.data(), mBarAbove.data()); // take this bar out of any stacking
   delete mData;
@@ -19023,22 +19023,22 @@ void QCPBars::connectBars(QCPBars *lower, QCPBars *upper)
   {
     // disconnect old bar below upper:
     if (upper->mBarBelow && upper->mBarBelow.data()->mBarAbove.data() == upper)
-      upper->mBarBelow.data()->mBarAbove = 0;
-    upper->mBarBelow = 0;
+      upper->mBarBelow.data()->mBarAbove = nullptr;
+    upper->mBarBelow = nullptr;
   } else if (!upper) // disconnect lower at top
   {
     // disconnect old bar above lower:
     if (lower->mBarAbove && lower->mBarAbove.data()->mBarBelow.data() == lower)
-      lower->mBarAbove.data()->mBarBelow = 0;
-    lower->mBarAbove = 0;
+      lower->mBarAbove.data()->mBarBelow = nullptr;
+    lower->mBarAbove = nullptr;
   } else // connect lower and upper
   {
     // disconnect old bar above lower:
     if (lower->mBarAbove && lower->mBarAbove.data()->mBarBelow.data() == lower)
-      lower->mBarAbove.data()->mBarBelow = 0;
+      lower->mBarAbove.data()->mBarBelow = nullptr;
     // disconnect old bar below upper:
     if (upper->mBarBelow && upper->mBarBelow.data()->mBarAbove.data() == upper)
-      upper->mBarBelow.data()->mBarAbove = 0;
+      upper->mBarBelow.data()->mBarAbove = nullptr;
     lower->mBarAbove = upper;
     upper->mBarBelow = lower;
   }
@@ -19636,7 +19636,7 @@ QCPColorMapData::QCPColorMapData(int keySize, int valueSize, const QCPRange &key
   mKeyRange(keyRange),
   mValueRange(valueRange),
   mIsEmpty(true),
-  mData(0),
+  mData(nullptr),
   mDataModified(true)
 {
   setSize(keySize, valueSize);
@@ -19656,7 +19656,7 @@ QCPColorMapData::QCPColorMapData(const QCPColorMapData &other) :
   mKeySize(0),
   mValueSize(0),
   mIsEmpty(true),
-  mData(0),
+  mData(nullptr),
   mDataModified(true)
 {
   *this = other;
@@ -19729,14 +19729,14 @@ void QCPColorMapData::setSize(int keySize, int valueSize)
 #endif
       mData = new double[mKeySize*mValueSize];
 #ifdef __EXCEPTIONS
-      } catch (...) { mData = 0; }
+      } catch (...) { mData = nullptr; }
 #endif
       if (mData)
         fill(0);
       else
         qDebug() << Q_FUNC_INFO << "out of memory for data dimensions "<< mKeySize << "*" << mValueSize;
     } else
-      mData = 0;
+      mData = nullptr;
     mDataModified = true;
   }
 }
@@ -20636,7 +20636,7 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
 */
 QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),
-  mData(0),
+  mData(nullptr),
   mChartStyle(csOhlc),
   mWidth(0.5),
   mTwoColored(false),
@@ -22994,7 +22994,7 @@ QPen QCPItemPixmap::mainPen() const
 QCPItemTracer::QCPItemTracer(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),
   position(createPosition(QLatin1String("position"))),
-  mGraph(0)
+  mGraph(nullptr)
 {
   position->setCoords(0, 0);
 
@@ -23096,7 +23096,7 @@ void QCPItemTracer::setGraph(QCPGraph *graph)
       qDebug() << Q_FUNC_INFO << "graph isn't in same QCustomPlot instance as this item";
   } else
   {
-    mGraph = 0;
+    mGraph = nullptr;
   }
 }
 
